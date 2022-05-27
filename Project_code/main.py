@@ -15,6 +15,7 @@ from firebase_admin import db
 import requests
 import drug_shop
 import shop_page_win
+import basket_page_win
 
 
 cred = credentials.Certificate(
@@ -290,7 +291,7 @@ class ShopPage(QDialog):
         self.ui.basketButton.setText("  Basket • " + str(self.item_num) + " " + self.item_txt +
                                      "                              " + "฿" + str(self.net_price))
         self.ui.toolButton.clicked.connect(self.gotoHome)
-        # self.ui.basketButton.click.connect(self.gotoBasket)
+        self.ui.basketButton.clicked.connect(self.gotoBasket)
 
         # middle layout
         layout_middle = QVBoxLayout()
@@ -485,15 +486,15 @@ class ShopPage(QDialog):
         self.popup[index].show()
 
     def gotoBasket(self):
-        # try:
-        #     shop = ShopPage()
-        #     basket = Basket()
-        #     widget.removeWidget(shop)
-        #     widget.addWidget(basket)
-        #     widget.setCurrentIndex(widget.currentIndex() + 1)
-        # except Exception as e:
-        #     print(e)
-        pass
+        try:
+            shop = ShopPage()
+            basket = Basket(self.item_name, self.item_price,
+                            self.item_quantity, self.net_price)
+            widget.removeWidget(shop)
+            widget.addWidget(basket)
+            widget.setCurrentIndex(widget.currentIndex() + 1)
+        except Exception as e:
+            print(e)
 
     def addAmount(self, i):
         self.item_amount[i] += 1
@@ -516,6 +517,103 @@ class ShopPage(QDialog):
     def displayInPopUp(self, i):
         self.item_amount_label[i].setText(str(self.item_amount[i]))
         print("Amount: ", self.item_amount[i], ", i: ", i)
+
+
+class Basket(QDialog):
+    def __init__(self, item_name, item_price, item_quantity, all_food_price):
+        QDialog.__init__(self, None)
+        self.ui = basket_page_win.Ui_Dialog()
+        self.ui.setupUi(self)
+        self.setWindowTitle("Basket Page")
+        self.ui.basketBackButton.clicked.connect(self.gotoShopPage)
+
+        # set value
+        self.item_quantity = item_quantity  # list
+        self.item_name = item_name  # list
+        self.item_price = item_price  # list
+        self.all_food_price = all_food_price
+
+        # access shop db
+        self.shop_db = db.reference(f'Shop/R{shop_number[0]}').get()
+
+        # access user db
+        self.uid = auth.current_user['localId']
+        self.user = db.reference(f'Users/{self.uid}').get()
+
+        # button
+        self.ui.basket_shop_name.setText(self.shop_db['Name'])
+        self.ui.basket_shop_km.setText(self.shop_db['Distance'])
+        self.ui.basket_shop_mins.setText(self.shop_db['Time'])
+        self.ui.addressLineEdit.setText(self.user['Address'])
+
+        print("Name: ", self.item_name)
+        print("Price: ", self.item_price)
+        print("Quantity: ", self.item_quantity)
+        print("All food price: ", self.all_food_price)
+
+        layout_middle = QVBoxLayout()
+        self.amount_of_item = len(self.item_name)
+
+        item_quantity_label = []
+        item_name_label = []
+        item_price_label = []
+        min_layout = []
+
+        for i in range(self.amount_of_item):
+            item_quantity_label.append(QLabel())  # quantity
+            item_name_label.append(QLabel())  # name
+            item_price_label.append(QLabel())  # price
+            min_layout.append(QHBoxLayout())  # line by line
+
+        for i in range(self.amount_of_item):
+            item_quantity_label[i].setText("x" + str(self.item_quantity[i]))
+            item_name_label[i].setText(self.item_name[i])
+            item_price_label[i].setText(
+                str(self.item_price[i] * self.item_quantity[i]) + "฿")
+
+            min_layout[i].addWidget(item_quantity_label[i])
+            min_layout[i].addWidget(item_name_label[i])
+            min_layout[i].addWidget(item_price_label[i])
+            layout_middle.addLayout(min_layout[i])
+
+        self.ui.basketScrollAreaWidgetContents.setLayout(layout_middle)
+
+        # set the value in UI window
+        self.deliveryFee = 20
+        self.ui.all_food_price_label.setText("฿" + str(self.all_food_price))
+        self.ui.delivery_fee_label.setText("฿" + str(self.deliveryFee))
+
+        self.total_price = self.all_food_price + self.deliveryFee
+        self.ui.total_price_label.setText("฿" + str(self.total_price))
+
+        self.ui.placeOrderButton.clicked.connect(self.confirmOrder)
+
+    # set when ผ่านหน้าเลือกร้านมา เพื่อทำให้รู้ว่าคือร้านไหน ชื่ออะไร จากการใช้ i
+
+    def setIndexOfShop(self, i):  # ใช้ obj แล้ว call เลย
+        pass
+
+    # def getIndexOfShop(self):
+    #     return int(self.deliveryFee)
+
+    def confirmOrder(self):
+
+        print("Order Confirm:")
+        print("Item name: ", self.item_name)
+        print("Item price: ", self.item_price)
+        print("Item quantity: ", self.item_quantity)
+        print("Payment method: ", self.ui.paymentMethodComboBox.currentText())
+
+    def gotoShopPage(self):
+        try:
+            shop = ShopPage()
+            basket = Basket(self.item_name, self.item_price,
+                            self.item_quantity, self.all_food_price)
+            widget.removeWidget(basket)
+            widget.addWidget(shop)
+            widget.setCurrentIndex(widget.currentIndex() + 1)
+        except Exception as e:
+            print(e)
 
 
 if __name__ == "__main__":
