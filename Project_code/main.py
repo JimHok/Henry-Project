@@ -16,32 +16,7 @@ import requests
 import drug_shop
 import shop_page_win
 import basket_page_win
-
-
-cred = credentials.Certificate(
-    r'C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\Project_code\TestAccountKey.json')
-
-firebase_admin.initialize_app(cred, {
-    'databaseURL': 'https://test-26b5b-default-rtdb.asia-southeast1.firebasedatabase.app/'
-})
-
-ref = db.reference('Users/')
-
-# for authentication
-firebaseConfig = {"apiKey": "AIzaSyCQq2Pz8QW8STqDu8BbehbHAOxff8boaIo",
-                  "authDomain": "test-26b5b.firebaseapp.com",
-                  "databaseURL": "https://test-26b5b-default-rtdb.asia-southeast1.firebasedatabase.app",
-                  "projectId": "test-26b5b",
-                  "storageBucket": "test-26b5b.appspot.com",
-                  "messagingSenderId": "856362923148",
-                  "appId": "1:856362923148:web:625e1076eda813e5d737a9",
-                  "measurementId": "G-3YHK5K5JR4"}
-
-firebase = pyrebase.initialize_app(firebaseConfig)
-
-auth = firebase.auth()
-
-shop_number = [0]
+import numpy as np
 
 
 class Login(QDialog):
@@ -104,7 +79,8 @@ class CreateAcc(QDialog):
                 auth.create_user_with_email_and_password(email, password)
                 user = auth.sign_in_with_email_and_password(email, password)
                 ref.child(user['localId']).set(
-                    {'Email': email, 'Password': password, 'Picture': '', 'Name': '', 'Address': '', 'Mobile': ''})
+                    {'Email': email, 'Password': password, 'Picture': '', 'Name': '', 'Address': '',
+                     'Mobile': '', 'Basket': '', 'Order': ''})
                 login = Login()
                 createacc = CreateAcc()
                 widget.removeWidget(createacc)
@@ -278,18 +254,15 @@ class ShopPage(QDialog):
         self.ui = shop_page_win.Ui_Dialog()
         self.ui.setupUi(self)
         self.setWindowTitle("Terbal Shop Page")
+        self.uid = auth.current_user['localId']
 
         # Basket button
-        self.item_num = 0
         self.item_txt = "Item"
-        self.net_price = 0
         self.shop_db = db.reference(f'Shop/R{shop_number[0]}').get()
         self.ui.shop_name.setText(self.shop_db['Name'])
         self.ui.shop_km.setText(self.shop_db['Distance'])
         self.ui.shop_mins.setText(self.shop_db['Time'])
         self.ui.shop_delivery_fee.setText(f"{str(self.shop_db['Fee'])}฿")
-        self.ui.basketButton.setText("  Basket • " + str(self.item_num) + " " + self.item_txt +
-                                     "                              " + "฿" + str(self.net_price))
         self.ui.toolButton.clicked.connect(self.gotoHome)
         self.ui.basketButton.clicked.connect(self.gotoBasket)
 
@@ -297,12 +270,23 @@ class ShopPage(QDialog):
         layout_middle = QVBoxLayout()
 
         # items name and price
-        self.item_name = ["อ้วยอันโอสถ \nยาแคปซูลฟ้าทะลายโจรสกัด",
+        self.item_name = ["อ้วยอันโอสถ nยาแคปซูลฟ้าทะลายโจรสกัด",
                           "ยันฮี ยาฟาร์แท็บ ฟ้าทะลายโจร", "Ya Dom Poi-Sian", "Propoliz mouth spray"]
         self.item_price = [120, 80, 20, 90]
 
         self.amount_of_item = len(self.item_name)
-        self.item_quantity = []
+        self.temp_quantity = db.reference(f'Users/{self.uid}/Basket').get()
+        try:
+            self.item_quantity = list(self.temp_quantity.values())
+        except:
+            self.item_quantity = []
+        for i in range(self.amount_of_item - len(self.item_quantity)):
+            self.item_quantity.append(0)
+        self.item_num = sum(self.item_quantity)
+        self.net_price = np.dot(self.item_price, self.item_quantity)
+
+        self.ui.basketButton.setText("  Basket • " + str(self.item_num) + " " + self.item_txt +
+                                     "                              " + "฿" + str(self.net_price))
         self.orderButton = []
         self.item_quantity_label = []
         item_name_label = []
@@ -311,7 +295,6 @@ class ShopPage(QDialog):
 
         # declare each item (in this case, I use .append because I use list)
         for i in range(self.amount_of_item):
-            self.item_quantity.append(0)
             self.orderButton.append(QPushButton("order", self))
             self.item_quantity_label.append(QLabel())  # quantity
             item_name_label.append(QLabel())  # name
@@ -412,8 +395,8 @@ class ShopPage(QDialog):
             self.item_amount.append(self.item_quantity[index])
 
             self.item_amount_label.append(QLabel(self))
-            addBasketButton = QPushButton(self)
-            self.addToBasketButton.append(addBasketButton)
+            self.addBasketButton = QPushButton(self)
+            self.addToBasketButton.append(self.addBasketButton)
 
         for i in range(self.amount_of_item):
             # # customize button
@@ -468,6 +451,15 @@ class ShopPage(QDialog):
 
             self.popup[i].setLayout(layout_big[i])
 
+        self.addToBasketButton[0].clicked.connect(
+            lambda: self.addToBasketdb(0))
+        self.addToBasketButton[1].clicked.connect(
+            lambda: self.addToBasketdb(1))
+        self.addToBasketButton[2].clicked.connect(
+            lambda: self.addToBasketdb(2))
+        self.addToBasketButton[3].clicked.connect(
+            lambda: self.addToBasketdb(3))
+
         plus_button[0].clicked.connect(lambda: self.addAmount(0))
         plus_button[1].clicked.connect(lambda: self.addAmount(1))
         plus_button[2].clicked.connect(lambda: self.addAmount(2))
@@ -484,6 +476,11 @@ class ShopPage(QDialog):
         self.addToBasketButton[3].clicked.connect(self.popup[3].close)
 
         self.popup[index].show()
+
+    def addToBasketdb(self, type):
+        # print({self.item_name[type]: self.item_quantity[type]})
+        db.reference(f'Users/{self.uid}/Basket').update(
+            {f'Item {type}': self.item_quantity[type]})
 
     def gotoBasket(self):
         try:
@@ -596,6 +593,22 @@ class Basket(QDialog):
     #     return int(self.deliveryFee)
 
     def confirmOrder(self):
+        order_hist = {}
+        for i in range(len(self.item_quantity)):
+            order_hist.update({f'Item {i}': self.item_quantity[i]})
+        db.reference(f'Users/{self.uid}/Order').push(order_hist)
+        db.reference(f'Users/{self.uid}/Basket').delete()
+        db.reference(f'Users/{self.uid}').update({'Basket': ''})
+        try:
+            home = Shop()
+            basket = Basket(self.item_name, self.item_price,
+                            self.item_quantity, self.all_food_price)
+            widget.removeWidget(basket)
+            widget.addWidget(home)
+            widget.setCurrentIndex(widget.currentIndex() + 1)
+        except Exception as e:
+            print(e)
+
         print("Order Confirm:")
         print("Item name: ", self.item_name)
         print("Item price: ", self.item_price)
@@ -615,6 +628,29 @@ class Basket(QDialog):
 
 
 if __name__ == "__main__":
+    cred = credentials.Certificate(
+        r'C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\Project_code\TestAccountKey.json')
+
+    firebase_admin.initialize_app(cred, {
+        'databaseURL': 'https://test-26b5b-default-rtdb.asia-southeast1.firebasedatabase.app/'})
+
+    ref = db.reference('Users/')
+
+    # for authentication
+    firebaseConfig = {"apiKey": "AIzaSyCQq2Pz8QW8STqDu8BbehbHAOxff8boaIo",
+                      "authDomain": "test-26b5b.firebaseapp.com",
+                      "databaseURL": "https://test-26b5b-default-rtdb.asia-southeast1.firebasedatabase.app",
+                      "projectId": "test-26b5b",
+                      "storageBucket": "test-26b5b.appspot.com",
+                      "messagingSenderId": "856362923148",
+                      "appId": "1:856362923148:web:625e1076eda813e5d737a9",
+                      "measurementId": "G-3YHK5K5JR4"}
+
+    firebase = pyrebase.initialize_app(firebaseConfig)
+
+    auth = firebase.auth()
+
+    shop_number = [0]
     app = QApplication(sys.argv)
 
     window = Login()
