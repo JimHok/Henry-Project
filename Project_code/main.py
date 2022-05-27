@@ -354,7 +354,7 @@ class ShopPage(QDialog):
                 self.item_num -= 1  # for all items at basket button
                 self.net_price -= self.item_price[i]
 
-        print("Quantity: ", self.item_quantity[i], ", i: ", i)
+        # print("Quantity: ", self.item_quantity[i], ", i: ", i)
         self.item_quantity_label[i].setText("x" + str(self.item_quantity[i]))
 
         if(self.item_num > 0):
@@ -382,7 +382,7 @@ class ShopPage(QDialog):
         layout_control = []
         plus_button = []
         minus_button = []
-        addToBasketButton = []
+        self.addToBasketButton = []
         self.item_amount_label = []
         self.item_amount = []
         layout_big = []
@@ -413,7 +413,7 @@ class ShopPage(QDialog):
 
             self.item_amount_label.append(QLabel(self))
             addBasketButton = QPushButton(self)
-            addToBasketButton.append(addBasketButton)
+            self.addToBasketButton.append(addBasketButton)
 
         for i in range(self.amount_of_item):
             # # customize button
@@ -458,13 +458,13 @@ class ShopPage(QDialog):
             # may be cutomize addToBasketButton
             font4 = QFont()
             font4.setPointSize(24)
-            addToBasketButton[i].setLayoutDirection(Qt.LeftToRight)
-            addToBasketButton[i].setStyleSheet(u"text-align: left;")
-            addToBasketButton[i].setFont(font4)
-            addToBasketButton[i].setText(
+            self.addToBasketButton[i].setLayoutDirection(Qt.LeftToRight)
+            self.addToBasketButton[i].setStyleSheet(u"text-align: left;")
+            self.addToBasketButton[i].setFont(font4)
+            self.addToBasketButton[i].setText(
                 "Add to Basket                    ฿" + str(self.item_price[i]))
 
-            layout_big[i].addWidget(addToBasketButton[i])
+            layout_big[i].addWidget(self.addToBasketButton[i])
 
             self.popup[i].setLayout(layout_big[i])
 
@@ -478,19 +478,17 @@ class ShopPage(QDialog):
         minus_button[2].clicked.connect(lambda: self.minusAmount(2))
         minus_button[3].clicked.connect(lambda: self.minusAmount(3))
 
-        addToBasketButton[0].clicked.connect(self.popup[0].close)
-        addToBasketButton[1].clicked.connect(self.popup[1].close)
-        addToBasketButton[2].clicked.connect(self.popup[2].close)
-        addToBasketButton[3].clicked.connect(self.popup[3].close)
+        self.addToBasketButton[0].clicked.connect(self.popup[0].close)
+        self.addToBasketButton[1].clicked.connect(self.popup[1].close)
+        self.addToBasketButton[2].clicked.connect(self.popup[2].close)
+        self.addToBasketButton[3].clicked.connect(self.popup[3].close)
 
         self.popup[index].show()
 
     def gotoBasket(self):
         try:
-            shop = ShopPage()
             basket = Basket(self.item_name, self.item_price,
                             self.item_quantity, self.net_price)
-            widget.removeWidget(shop)
             widget.addWidget(basket)
             widget.setCurrentIndex(widget.currentIndex() + 1)
         except Exception as e:
@@ -516,7 +514,9 @@ class ShopPage(QDialog):
 
     def displayInPopUp(self, i):
         self.item_amount_label[i].setText(str(self.item_amount[i]))
-        print("Amount: ", self.item_amount[i], ", i: ", i)
+        self.addToBasketButton[i].setText(
+            "Add to Basket                    ฿" + str(self.item_price[i] * self.item_amount[i]))
+        # print("Amount: ", self.item_amount[i], ", i: ", i)
 
 
 class Basket(QDialog):
@@ -525,7 +525,6 @@ class Basket(QDialog):
         self.ui = basket_page_win.Ui_Dialog()
         self.ui.setupUi(self)
         self.setWindowTitle("Basket Page")
-        self.ui.basketBackButton.clicked.connect(self.gotoShopPage)
 
         # set value
         self.item_quantity = item_quantity  # list
@@ -546,10 +545,10 @@ class Basket(QDialog):
         self.ui.basket_shop_mins.setText(self.shop_db['Time'])
         self.ui.addressLineEdit.setText(self.user['Address'])
 
-        print("Name: ", self.item_name)
-        print("Price: ", self.item_price)
-        print("Quantity: ", self.item_quantity)
-        print("All food price: ", self.all_food_price)
+        # print("Name: ", self.item_name)
+        # print("Price: ", self.item_price)
+        # print("Quantity: ", self.item_quantity)
+        # print("All food price: ", self.all_food_price)
 
         layout_middle = QVBoxLayout()
         self.amount_of_item = len(self.item_name)
@@ -577,16 +576,16 @@ class Basket(QDialog):
             layout_middle.addLayout(min_layout[i])
 
         self.ui.basketScrollAreaWidgetContents.setLayout(layout_middle)
+        self.ui.placeOrderButton.clicked.connect(self.confirmOrder)
+        self.ui.basketBackButton.clicked.connect(self.gotoShop)
 
         # set the value in UI window
-        self.deliveryFee = 20
+        self.deliveryFee = self.shop_db['Fee']
         self.ui.all_food_price_label.setText("฿" + str(self.all_food_price))
         self.ui.delivery_fee_label.setText("฿" + str(self.deliveryFee))
 
         self.total_price = self.all_food_price + self.deliveryFee
         self.ui.total_price_label.setText("฿" + str(self.total_price))
-
-        self.ui.placeOrderButton.clicked.connect(self.confirmOrder)
 
     # set when ผ่านหน้าเลือกร้านมา เพื่อทำให้รู้ว่าคือร้านไหน ชื่ออะไร จากการใช้ i
 
@@ -597,14 +596,13 @@ class Basket(QDialog):
     #     return int(self.deliveryFee)
 
     def confirmOrder(self):
-
         print("Order Confirm:")
         print("Item name: ", self.item_name)
         print("Item price: ", self.item_price)
         print("Item quantity: ", self.item_quantity)
         print("Payment method: ", self.ui.paymentMethodComboBox.currentText())
 
-    def gotoShopPage(self):
+    def gotoShop(self):
         try:
             shop = ShopPage()
             basket = Basket(self.item_name, self.item_price,
