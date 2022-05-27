@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>Dialog</class>
+ <widget class="QDialog" name="Dialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>375</width>
+    <height>730</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Dialog</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">*{
+	font-family: &quot;century gothic&quot;;
+}
+
+</string>
+  </property>
+  <widget class="QLabel" name="profilepic">
+   <property name="geometry">
+    <rect>
+     <x>107</x>
+     <y>12</y>
+     <width>161</width>
+     <height>151</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">*{
+font-size:34px;
+border-radius: 50%;
+}</string>
+   </property>
+   <property name="frameShape">
+    <enum>QFrame::NoFrame</enum>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+   <property name="alignment">
+    <set>Qt::AlignCenter</set>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="browsepic">
+   <property name="geometry">
+    <rect>
+     <x>101</x>
+     <y>170</y>
+     <width>175</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+background-color: rgb(111, 218, 156);
+font-size: 24px;
+border-width: 4px;
+border-radius: 15px;
+font-weight: bold;
+}
+
+QPushButton:hover{
+	border-color: black;
+	background-color: rgb(90, 190, 130);
+}</string>
+   </property>
+   <property name="text">
+    <string>Browse Photo</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_e">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>230</y>
+     <width>81</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 18pt &quot;century gothic&quot;;
+border: none;
+</string>
+   </property>
+   <property name="text">
+    <string>Email</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_a">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>410</y>
+     <width>121</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 18pt &quot;century gothic&quot;;
+border: none;
+</string>
+   </property>
+   <property name="text">
+    <string>Address</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_m">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>500</y>
+     <width>211</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 16pt &quot;century gothic&quot;;
+border: none;
+</string>
+   </property>
+   <property name="text">
+    <string>Mobile Number</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_n">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>320</y>
+     <width>91</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 18pt &quot;century gothic&quot;;
+border: none;
+</string>
+   </property>
+   <property name="text">
+    <string>Name</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="save">
+   <property name="geometry">
+    <rect>
+     <x>101</x>
+     <y>600</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+	background-color: rgb(111, 218, 156);
+	font-size: 24px;
+	border-width: 4px;
+	border-radius: 15px;
+	font-weight: bold;
+	color: white;
+}
+
+QPushButton:hover{
+	border-color: black;
+	background-color: rgb(90, 190, 130);
+}</string>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+  </widget>
+  <widget class="QPushButton" name="logout">
+   <property name="geometry">
+    <rect>
+     <x>101</x>
+     <y>660</y>
+     <width>171</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QPushButton{
+background-color: rgb(57, 68, 84);
+font-size: 24px;
+font-weight: bold;
+color: white;
+border-width: 4px;
+border-radius: 15px;
+border-style: solid;
+border-color:  rgb(111, 218, 156);
+}
+
+QPushButton:hover{
+	border-color: black;
+	background-color: rgb(80, 110, 125);
+}</string>
+   </property>
+   <property name="text">
+    <string>Log Out</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="name">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>360</y>
+     <width>295</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 14pt &quot;century gothic&quot;;
+border: 2px solid;
+border-color: red;
+border-color:  rgb(111, 218, 156);
+background-color: rgba(0, 0, 0, 0);</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="address">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>450</y>
+     <width>295</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 14pt &quot;century gothic&quot;;
+border: 2px solid;
+border-color: red;
+border-color:  rgb(111, 218, 156);
+background-color: rgba(0, 0, 0, 0);</string>
+   </property>
+  </widget>
+  <widget class="QLineEdit" name="mobile">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>540</y>
+     <width>295</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 14pt &quot;century gothic&quot;;
+border: 2px solid;
+border-color: red;
+border-color:  rgb(111, 218, 156);
+background-color: rgba(0, 0, 0, 0);</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="email">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>270</y>
+     <width>295</width>
+     <height>51</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">font: 14pt &quot;century gothic&quot;;
+border: 2px solid;
+border-color: red;
+border-color:  rgb(111, 218, 156);
+background-color: rgba(0, 0, 0, 0);</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+  <widget class="QToolButton" name="home">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>41</width>
+     <height>41</height>
+    </rect>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QToolButton{
+	image: url(:/logo/icons8-home-24.png);
+	background-color: rgb(111, 218, 156);
+	border-width: 4px;
+	border-radius: 15px;
+	font-weight: bold;
+	color: white;
+}
+
+QToolButton:hover{
+	border-color: black;
+	background-color: rgb(140, 238, 179)
+}
+</string>
+   </property>
+   <property name="text">
+    <string/>
+   </property>
+  </widget>
+ </widget>
+ <resources>
+  <include location="../images/logo.qrc"/>
+ </resources>
+ <connections/>
+</ui>
