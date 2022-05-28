@@ -276,7 +276,9 @@ class ShopPage(QDialog):
         self.item_price = [120, 80, 20, 90]
 
         self.amount_of_item = len(self.item_name)
-        self.temp_quantity = db.reference(f'Users/{self.uid}/Basket').get()
+        shop_name = self.shop_db['Name']
+        self.temp_quantity = db.reference(
+            f'Users/{self.uid}/Basket/{shop_name}').get()
         try:
             self.item_quantity = list(self.temp_quantity.values())
         except:
@@ -349,8 +351,8 @@ class ShopPage(QDialog):
 
     def gotoHome(self):
         try:
-            db.reference(f'Users/{self.uid}/Basket').delete()
-            db.reference(f'Users/{self.uid}').update({'Basket': ''})
+            # db.reference(f'Users/{self.uid}/Basket').delete()
+            # db.reference(f'Users/{self.uid}').update({'Basket': ''})
             shop = ShopPage()
             home = Shop()
             widget.removeWidget(shop)
@@ -373,6 +375,14 @@ class ShopPage(QDialog):
         self.item_amount = []
         layout_big = []
         self.item_pic = []
+
+        shop_name = self.shop_db['Name']
+        self.temp_shop_order = list(
+            db.reference(f'Users/{self.uid}/Basket').get())
+        for i in range(len(self.temp_shop_order)):
+            if self.temp_shop_order[i] != shop_name:
+                db.reference(
+                    f'Users/{self.uid}/Basket/{self.temp_shop_order[i]}').delete()
 
         pic_name = [r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\Fa_talaijord.jpeg",
                     r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\poi_sian.jpeg",
@@ -482,7 +492,8 @@ class ShopPage(QDialog):
 
     def addToBasketdb(self, type):
         # print({self.item_name[type]: self.item_quantity[type]})
-        db.reference(f'Users/{self.uid}/Basket').update(
+        shop_name = self.shop_db['Name']
+        db.reference(f'Users/{self.uid}/Basket/{shop_name}').update(
             {f'Item {type}': self.item_quantity[type]})
 
     def gotoBasket(self):
