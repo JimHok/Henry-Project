@@ -351,6 +351,7 @@ class ShopPage(QDialog):
 
     def gotoHome(self):
         try:
+            # clear basket when go to home
             # db.reference(f'Users/{self.uid}/Basket').delete()
             # db.reference(f'Users/{self.uid}').update({'Basket': ''})
             shop = ShopPage()
