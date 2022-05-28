@@ -17,6 +17,7 @@ import drug_shop
 import shop_page_win
 import basket_page_win
 import numpy as np
+from datetime import datetime
 
 
 class Login(QDialog):
@@ -584,19 +585,24 @@ class Basket(QDialog):
         self.total_price = self.all_food_price + self.deliveryFee
         self.ui.total_price_label.setText("฿" + str(self.total_price))
 
-    # set when ผ่านหน้าเลือกร้านมา เพื่อทำให้รู้ว่าคือร้านไหน ชื่ออะไร จากการใช้ i
-
-    def setIndexOfShop(self, i):  # ใช้ obj แล้ว call เลย
-        pass
-
-    # def getIndexOfShop(self):
-    #     return int(self.deliveryFee)
-
     def confirmOrder(self):
         order_hist = {}
+        shop_db_name = self.shop_db['Name']
+
+        # Order history
         for i in range(len(self.item_quantity)):
             order_hist.update({f'Item {i}': self.item_quantity[i]})
-        db.reference(f'Users/{self.uid}/Order').push(order_hist)
+
+        # Limit the number of orders to 10
+        current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        order_dir = f'Users/{self.uid}/Order'
+        if len(list(db.reference(order_dir).get().keys())) >= 10:
+            oldest_date = min(list(db.reference(order_dir).get().keys()))
+            db.reference(f'{order_dir}/{oldest_date}').delete()
+
+        # Delete the order from the basket
+        db.reference(
+            f'{order_dir}/{current_time}/{shop_db_name}').update(order_hist)
         db.reference(f'Users/{self.uid}/Basket').delete()
         db.reference(f'Users/{self.uid}').update({'Basket': ''})
         try:
