@@ -18,6 +18,8 @@ import shop_page_win
 import basket_page_win
 import numpy as np
 from datetime import datetime
+import history_win
+import pandas as pd
 
 
 class Login(QDialog):
@@ -112,7 +114,7 @@ class Shop(QDialog):
         self.ui.pushButton_6.clicked.connect(lambda: self.choosen(6))
 
         self.ui.profile_icon.clicked.connect(self.profile)
-        self.ui.home_icon.clicked.connect(self.choosen)
+        self.ui.home_icon.clicked.connect(self.gotoHistory)
 
         uid = auth.current_user['localId']
         try:
@@ -182,6 +184,64 @@ class Shop(QDialog):
                 self.ui.shop_r5.setVisible(True)
             if i == widgets[5]:
                 self.ui.shop_r6.setVisible(True)
+
+    def gotoHistory(self):
+        home = Shop()
+        history = Order_History()
+        widget.removeWidget(home)
+        widget.addWidget(history)
+        widget.setCurrentIndex(widget.currentIndex() + 1)
+
+
+class Order_History(QDialog):
+    def __init__(self):
+        QDialog.__init__(self, None)
+
+        self.ui = history_win.Ui_Dialog()
+        self.ui.setupUi(self)
+
+        self.uid = auth.current_user['localId']
+
+        self.ui.tableWidget.setRowCount(20)
+        self.ui.tableWidget.setColumnCount(3)
+
+        self.ui.tableWidget.setCurrentCell(0, 0)
+
+        self.ui.orderBackButton.clicked.connect(self.gotoHome)
+        self.pullOrder()
+        self.setData()
+
+    def pullOrder(self):
+        self.order_db = db.reference(f'Users/{self.uid}/Order').get()
+        dates = list(self.order_db)
+
+        shop = list(np.array(list(list(list(self.order_db.values())[
+            i].keys()) for i in range(len(dates)))).flatten())
+
+        item_temp = np.array(list(list(list(self.order_db.values())[
+                             i].values()) for i in range(len(dates))))
+        item_temp1 = list(list(item_temp[i][0].values())
+                          for i in range(len(item_temp)))
+        item = list(sum(item_temp1[i]) for i in range(len(item_temp1)))
+
+        data_temp = list([dates, shop, item])
+        self.data = {f'col{i+1}': data_temp[i] for i in range(len(data_temp))}
+        # print('self.data: ', self.data)
+
+    def setData(self):
+        for n, key in enumerate(sorted(self.data.keys())):
+            for m, item in enumerate(self.data[key]):
+                newitem = QTableWidgetItem()
+                newitem.setData(Qt.DisplayRole, item)
+                newitem.setTextAlignment(Qt.AlignCenter)
+                self.ui.tableWidget.setItem(m, n, newitem)
+
+    def gotoHome(self):
+        order = Order_History()
+        home = Shop()
+        widget.removeWidget(order)
+        widget.addWidget(home)
+        widget.setCurrentIndex(widget.currentIndex() + 1)
 
 
 class Profile(QDialog):
