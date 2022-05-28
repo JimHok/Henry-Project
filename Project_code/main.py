@@ -19,7 +19,6 @@ import basket_page_win
 import numpy as np
 from datetime import datetime
 import history_win
-import pandas as pd
 
 
 class Login(QDialog):
