@@ -651,9 +651,13 @@ class Basket(QDialog):
         # Limit the number of orders to 10
         current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         order_dir = f'Users/{self.uid}/Order'
-        if len(list(db.reference(order_dir).get().keys())) >= 10:
-            oldest_date = min(list(db.reference(order_dir).get().keys()))
-            db.reference(f'{order_dir}/{oldest_date}').delete()
+
+        try:
+            if len(list(db.reference(order_dir).get().keys())) >= 10:
+                oldest_date = min(list(db.reference(order_dir).get().keys()))
+                db.reference(f'{order_dir}/{oldest_date}').delete()
+        except:
+            pass
 
         # Delete the order from the basket
         try:
