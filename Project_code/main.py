@@ -47,7 +47,7 @@ class Login(QDialog):
         except Exception as e:
             exc_type, exc_obj, exc_tb = sys.exc_info()
             fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
-            print(exc_type, fname, exc_tb.tb_lineno)
+            print(e, exc_type, fname, exc_tb.tb_lineno)
             self.ui.invalid_login.setVisible(True)
 
     def gotocreate(self):
@@ -113,6 +113,14 @@ class Shop(QDialog):
 
         self.ui.profile_icon.clicked.connect(self.profile)
         self.ui.home_icon.clicked.connect(self.choosen)
+
+        uid = auth.current_user['localId']
+        try:
+            basket_number = db.reference(
+                f'Users/{uid}/Basket Number').get()
+        except:
+            db.reference(
+                f'Users/{uid}').update({'Basket Number': basket_number[0]})
 
         self.shop_name = [self.ui.shop_name_r1.text(), self.ui.shop_name_r1_2.text(), self.ui.shop_name_r1_3.text(
         ), self.ui.shop_name_r1_4.text(), self.ui.shop_name_r1_5.text(), self.ui.shop_name_r1_6.text()]
@@ -285,8 +293,18 @@ class ShopPage(QDialog):
             self.item_quantity = []
         for i in range(self.amount_of_item - len(self.item_quantity)):
             self.item_quantity.append(0)
-        self.item_num = sum(self.item_quantity)
-        self.net_price = np.dot(self.item_price, self.item_quantity)
+
+        self.basket_quantity_temp = db.reference(
+            f'Users/{self.uid}/Basket').get()
+        if len(list(self.basket_quantity_temp)) != 0:
+            self.basket_quantity = list(
+                list(self.basket_quantity_temp.values())[0].values())
+            self.item_num = sum(self.basket_quantity)
+            self.net_price = np.dot(self.item_price, self.basket_quantity)
+        else:
+            self.basket_quantity = self.item_quantity
+            self.item_num = sum(self.basket_quantity)
+            self.net_price = np.dot(self.item_price, self.basket_quantity)
 
         self.ui.basketButton.setText("  Basket • " + str(self.item_num) + " " + self.item_txt +
                                      "                              " + "฿" + str(self.net_price))
@@ -378,11 +396,29 @@ class ShopPage(QDialog):
         self.item_pic = []
 
         shop_name = self.shop_db['Name']
+
+        ref = f'Users/{self.uid}/Basket/{shop_name}'
+        if db.reference(ref).get() is None:
+            db.reference(f'Users/{self.uid}/Basket').update({self.shop_db['Name']: {
+                f'Item {i}': 0 for i in range(len(self.item_name))}})
+
         self.temp_shop_order = list(
             db.reference(f'Users/{self.uid}/Basket').get())
+
         for i in range(len(self.temp_shop_order)):
             if self.temp_shop_order[i] != shop_name:
-                db.reference(f'Users/{self.uid}').update({'Basket': ''})
+                db.reference(
+                    f'Users/{self.uid}/Basket/{self.temp_shop_order[i]}').delete()
+                self.basket_quantity_temp = db.reference(
+                    f'Users/{self.uid}/Basket').get()
+                self.basket_quantity = list(
+                    list(self.basket_quantity_temp.values())[0].values())
+                self.item_num = sum(self.basket_quantity)
+                self.net_price = np.dot(self.item_price, self.basket_quantity)
+                self.ui.basketButton.setText("  Basket • " + str(self.item_num) + " " + self.item_txt +
+                                             "                              " + "฿" + str(self.net_price))
+        db.reference(
+            f'Users/{self.uid}').update({'Basket Number': shop_number[0]})
 
         pic_name = [r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\Fa_talaijord.jpeg",
                     r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\poi_sian.jpeg",
@@ -497,13 +533,15 @@ class ShopPage(QDialog):
             {f'Item {type}': self.item_quantity[type]})
 
     def gotoBasket(self):
-        try:
-            basket = Basket(self.item_name, self.item_price,
-                            self.item_quantity, self.net_price)
-            widget.addWidget(basket)
-            widget.setCurrentIndex(widget.currentIndex() + 1)
-        except Exception as e:
-            print(e)
+        basket_quantity_temp = db.reference(
+            f'Users/{self.uid}/Basket').get()
+        basket_quantity = list(
+            list(basket_quantity_temp.values())[0].values())
+        net_price = np.dot(self.item_price, basket_quantity)
+        basket = Basket(self.item_name, self.item_price,
+                        basket_quantity, net_price)
+        widget.addWidget(basket)
+        widget.setCurrentIndex(widget.currentIndex() + 1)
 
     def addAmount(self, i):
         self.item_amount[i] += 1
@@ -536,6 +574,7 @@ class Basket(QDialog):
         self.ui = basket_page_win.Ui_Dialog()
         self.ui.setupUi(self)
         self.setWindowTitle("Basket Page")
+        self.uid = auth.current_user['localId']
 
         # set value
         self.item_quantity = item_quantity  # list
@@ -544,16 +583,19 @@ class Basket(QDialog):
         self.all_food_price = all_food_price
 
         # access shop db
-        self.shop_db = db.reference(f'Shop/R{shop_number[0]}').get()
+        basket_number_temp = db.reference(
+            f'Users/{self.uid}/Basket Number').get()
+        self.basket_db = db.reference(f'Shop/R{basket_number_temp}').get()
 
         # access user db
-        self.uid = auth.current_user['localId']
         self.user = db.reference(f'Users/{self.uid}').get()
+        self.temp_shop_name = db.reference(
+            f'Users/{self.uid}/Basket').get().keys()
 
         # button
-        self.ui.basket_shop_name.setText(self.shop_db['Name'])
-        self.ui.basket_shop_km.setText(self.shop_db['Distance'])
-        self.ui.basket_shop_mins.setText(self.shop_db['Time'])
+        self.ui.basket_shop_name.setText(self.basket_db['Name'])
+        self.ui.basket_shop_km.setText(self.basket_db['Distance'])
+        self.ui.basket_shop_mins.setText(self.basket_db['Time'])
         self.ui.addressLineEdit.setText(self.user['Address'])
 
         # print("Name: ", self.item_name)
@@ -591,16 +633,16 @@ class Basket(QDialog):
         self.ui.basketBackButton.clicked.connect(self.gotoShop)
 
         # set the value in UI window
-        self.deliveryFee = self.shop_db['Fee']
+        self.deliveryFee = self.basket_db['Fee']
         self.ui.all_food_price_label.setText("฿" + str(self.all_food_price))
         self.ui.delivery_fee_label.setText("฿" + str(self.deliveryFee))
 
-        self.total_price = self.all_food_price + self.deliveryFee
+        self.total_price = float(self.all_food_price) + float(self.deliveryFee)
         self.ui.total_price_label.setText("฿" + str(self.total_price))
 
     def confirmOrder(self):
         order_hist = {}
-        shop_db_name = self.shop_db['Name']
+        basket_db_name = self.basket_db['Name']
 
         # Order history
         for i in range(len(self.item_quantity)):
@@ -614,18 +656,27 @@ class Basket(QDialog):
             db.reference(f'{order_dir}/{oldest_date}').delete()
 
         # Delete the order from the basket
-        db.reference(
-            f'{order_dir}/{current_time}/{shop_db_name}').update(order_hist)
-        db.reference(f'Users/{self.uid}').update({'Basket': ''})
         try:
             home = Shop()
+            basket_quantity_temp = db.reference(
+                f'Users/{self.uid}/Basket').get()
+            basket_quantity = list(
+                list(basket_quantity_temp.values())[0].values())
+            net_price = np.dot(self.item_price, basket_quantity)
             basket = Basket(self.item_name, self.item_price,
-                            self.item_quantity, self.all_food_price)
+                            basket_quantity, net_price)
+            db.reference(
+                f'{order_dir}/{current_time}/{basket_db_name}').update(order_hist)
+            db.reference(f'Users/{self.uid}').update({'Basket': ''})
+            db.reference(f'Users/{self.uid}').update({'Basket Number': '0'})
             widget.removeWidget(basket)
             widget.addWidget(home)
             widget.setCurrentIndex(widget.currentIndex() + 1)
         except Exception as e:
-            print(e)
+            exc_type, exc_obj, exc_tb = sys.exc_info()
+            fname = os.path.split(exc_tb.tb_frame.f_code.co_filename)[1]
+            print(e, exc_type, fname, exc_tb.tb_lineno)
+            pass
 
         print("Order Confirm:")
         print("Item name: ", self.item_name)
@@ -669,6 +720,8 @@ if __name__ == "__main__":
     auth = firebase.auth()
 
     shop_number = [0]
+    basket_number = [0]
+
     app = QApplication(sys.argv)
 
     window = Login()
