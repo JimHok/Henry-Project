@@ -382,8 +382,7 @@ class ShopPage(QDialog):
             db.reference(f'Users/{self.uid}/Basket').get())
         for i in range(len(self.temp_shop_order)):
             if self.temp_shop_order[i] != shop_name:
-                db.reference(
-                    f'Users/{self.uid}/Basket/{self.temp_shop_order[i]}').delete()
+                db.reference(f'Users/{self.uid}').update({'Basket': ''})
 
         pic_name = [r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\Fa_talaijord.jpeg",
                     r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\poi_sian.jpeg",
@@ -617,7 +616,6 @@ class Basket(QDialog):
         # Delete the order from the basket
         db.reference(
             f'{order_dir}/{current_time}/{shop_db_name}').update(order_hist)
-        db.reference(f'Users/{self.uid}/Basket').delete()
         db.reference(f'Users/{self.uid}').update({'Basket': ''})
         try:
             home = Shop()
