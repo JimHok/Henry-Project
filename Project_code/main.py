@@ -479,10 +479,10 @@ class ShopPage(QDialog):
         db.reference(
             f'Users/{self.uid}').update({'Basket Number': shop_number[0]})
 
-        pic_name = [r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\Fa_talaijord.jpeg",
-                    r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\poi_sian.jpeg",
-                    r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\propoliz.jpeg",
-                    r"C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\pic\yan_hee.jpeg"]
+        pic_name = [r"C:\Users\jimyj\Desktop\Code\Python\Firebase\Henry Project new\pic\Fa_talaijord.jpeg",
+                    r"C:\Users\jimyj\Desktop\Code\Python\Firebase\Henry Project new\pic\poi_sian.jpeg",
+                    r"C:\Users\jimyj\Desktop\Code\Python\Firebase\Henry Project new\pic\propoliz.jpeg",
+                    r"C:\Users\jimyj\Desktop\Code\Python\Firebase\Henry Project new\pic\yan_hee.jpeg"]
 
         for i in range(self.amount_of_item):
             diag = QDialog(self)
@@ -761,7 +761,7 @@ class Basket(QDialog):
 
 if __name__ == "__main__":
     cred = credentials.Certificate(
-        r'C:\Users\jimyj\Desktop\Code\Python\Practices\Firebase\Henry Project new\Project_code\TestAccountKey.json')
+        r'C:\Users\jimyj\Desktop\Code\Python\Firebase\Henry Project new\Project_code\TestAccountKey.json')
 
     firebase_admin.initialize_app(cred, {
         'databaseURL': 'https://test-26b5b-default-rtdb.asia-southeast1.firebasedatabase.app/'})
